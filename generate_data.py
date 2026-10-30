@@ -4,6 +4,8 @@ from src.models import Facility, Equipment, Pump, Tank, Valve,Sensor
 
 from src.models import Pipe
 
+from src.generators.telemetry_generator import generate_telemetry
+
 def generate_facilities(session):
     facilities = [
         ("FAC-001", "North Water Treatment Plant", "North Zone"),
@@ -183,6 +185,72 @@ def generate_pipes(session):
 
 
     print(f"Pipes generated: {pipe_count-1}")
+    
+
+def generate_sensors(session):
+    sensors_to_create = []
+
+    # 20 flow sensors attached to pumps
+    for i in range(1, 21):
+        sensors_to_create.append(
+            (f"PUMP-{i:03d}", "flow", "L/s")
+        )
+
+    # 20 pressure sensors attached to pumps
+    for i in range(1, 21):
+        sensors_to_create.append(
+            (f"PUMP-{i:03d}", "pressure", "kPa")
+        )
+
+    # 30 tank-level sensors attached to tanks
+    for i in range(1, 31):
+        sensors_to_create.append(
+            (f"TANK-{i:03d}", "level", "L")
+        )
+
+    # 30 pressure sensors attached to valves
+    for i in range(1, 31):
+        sensors_to_create.append(
+            (f"VALVE-{i:03d}", "pressure", "kPa")
+        )
+
+    created_count = 0
+
+    for index, (equipment_id, sensor_type, unit) in enumerate(
+        sensors_to_create, start=1
+    ):
+        sensor_id = f"SNS-{index:03d}"
+
+        # Skip sensors already generated on an earlier run
+        if session.get(Sensor, sensor_id) is not None:
+            continue
+
+        equipment = session.get(Equipment, equipment_id)
+
+        if equipment is None:
+            raise ValueError(
+                f"Equipment {equipment_id} does not exist. "
+                "Generate equipment before sensors."
+            )
+
+        session.add(
+            Sensor(
+                id=sensor_id,
+                facility_id=equipment.facility_id,
+                equipment_id=equipment_id,
+                sensor_type=sensor_type,
+                unit=unit,
+                status="active",
+            )
+        )
+
+        created_count += 1
+
+    session.flush()
+    print(
+        f"Sensors created in this run: {created_count}; "
+        f"expected total: 100"
+    )
 
 def main():
     create_database()
@@ -192,6 +260,7 @@ def main():
             generate_facilities(session)
             generate_equipment(session)
             generate_pipes(session)
+            generate_sensors(session)
             session.commit()
             print("Synthetic master data generated successfully!")
         except Exception:
@@ -201,3 +270,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    with SessionLocal() as session:
+        generate_telemetry(session, readings_per_sensor=1000)

@@ -141,3 +141,26 @@ class Telemetry(Base):
             "sensor_id", "timestamp", name="uq_telemetry_sensor_timestamp"
         ),
     )
+    
+
+class ScenarioEvent(Base):
+    __tablename__ = "scenario_events"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    facility_id: Mapped[str] = mapped_column(
+        ForeignKey("facilities.id"), nullable=False
+    )
+    equipment_id: Mapped[str | None] = mapped_column(
+        ForeignKey("equipment.id"), nullable=True
+    )
+    scenario_type: Mapped[str] = mapped_column(String, nullable=False)
+    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    end_time: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True
+    )
+    severity: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String, default="planned", nullable=False
+    )
+
