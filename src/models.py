@@ -282,3 +282,38 @@ class DetectionResult(Base):
             name="uq_detection_event_sensor_timestamp",
         ),
     )
+
+
+
+class Alarm(Base):
+    __tablename__ = "alarms"
+
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
+    detection_result_id: Mapped[int] = mapped_column(
+        ForeignKey("detection_results.id"),
+        nullable=False,
+        unique=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+
+    alarm_type: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    severity: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    message: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    status: Mapped[str] = mapped_column(
+        String, default="open", nullable=False
+    )

@@ -1,0 +1,27 @@
+{
+    "project": "Industrial Monitoring and Fault Detection",
+    "database_summary": {
+        "facilities": 3,
+        "equipment": 110,
+        "pumps": 20,
+        "tanks": 30,
+        "valves": 60,
+        "pipes": 60,
+        "sensors": 100,
+        "telemetry_points": 100000
+    },
+    "simulation_summary": {
+        "scenario_events": 27,
+        "simulated_readings": 10916,
+        "detection_results": 10916
+    },
+    "alarms_by_severity": {
+        "high": 82,
+        "low": 1932,
+        "medium": 525
+    },
+    "detection_results_by_outcome": {
+        "anomaly": 2539,
+        "normal": 8377
+    }
+}

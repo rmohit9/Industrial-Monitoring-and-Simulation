@@ -143,15 +143,17 @@ def generate_controls(session: Session, sample_every: int = 10):
             if key in existing_keys:
                 continue
 
+
             session.add(
                 SimulatedTelemetry(
                     event_id=control_event_id,
                     sensor_id=sensor.id,
                     timestamp=reading.timestamp,
-                    baseline_value=round(float(nominal), 4),
-                    simulated_value=reading.value,
+                    baseline_value=round(float(reading.value), 4),
+                    simulated_value=round(float(reading.value), 4),
                 )
             )
+
             existing_keys.add(key)
             inserted += 1
 
