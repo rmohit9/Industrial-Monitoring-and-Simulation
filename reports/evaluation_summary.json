@@ -1,0 +1,31 @@
+{
+  "evaluation_type": "faults_and_normal_controls",
+  "true_positives": 916,
+  "false_negatives": 0,
+  "false_positives": 1643,
+  "true_negatives": 8357,
+  "missing_predictions": 0,
+  "precision": 0.358,
+  "recall": 1.0,
+  "specificity": 0.8357,
+  "accuracy": 0.8495,
+  "by_scenario_type": {
+    "blockage": {
+      "TP": 259
+    },
+    "leak": {
+      "TP": 344
+    },
+    "normal_control": {
+      "TN": 8357,
+      "FP": 1643
+    },
+    "pump_degradation": {
+      "TP": 170
+    },
+    "sensor_fault": {
+      "TP": 143
+    }
+  },
+  "note": "Control samples are compared with nominal references; fault samples are compared with their original readings. Review this difference when interpreting results."
+}

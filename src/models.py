@@ -141,26 +141,144 @@ class Telemetry(Base):
             "sensor_id", "timestamp", name="uq_telemetry_sensor_timestamp"
         ),
     )
-    
+
 
 class ScenarioEvent(Base):
     __tablename__ = "scenario_events"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
+
     facility_id: Mapped[str] = mapped_column(
         ForeignKey("facilities.id"), nullable=False
     )
+
     equipment_id: Mapped[str | None] = mapped_column(
         ForeignKey("equipment.id"), nullable=True
     )
-    scenario_type: Mapped[str] = mapped_column(String, nullable=False)
-    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    pipe_id: Mapped[str | None] = mapped_column(
+        ForeignKey("pipes.id"), nullable=True
+    )
+
+    sensor_id: Mapped[str | None] = mapped_column(
+        ForeignKey("sensors.id"), nullable=True
+    )
+
+    scenario_type: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    start_time: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False
+    )
+
     end_time: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True
     )
-    severity: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=False)
+
+    severity: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    description: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
     status: Mapped[str] = mapped_column(
         String, default="planned", nullable=False
     )
+    
 
+class SimulatedTelemetry(Base):
+    __tablename__ = "simulated_telemetry"
+
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
+    event_id: Mapped[str] = mapped_column(
+        ForeignKey("scenario_events.id"), nullable=False
+    )
+
+    sensor_id: Mapped[str] = mapped_column(
+        ForeignKey("sensors.id"), nullable=False
+    )
+
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False
+    )
+
+    baseline_value: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    simulated_value: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "event_id",
+            "sensor_id",
+            "timestamp",
+            name="uq_simulated_event_sensor_timestamp",
+        ),
+        CheckConstraint(
+            "baseline_value >= 0 AND simulated_value >= 0",
+            name="ck_simulated_values_nonnegative",
+        ),
+    )
+
+
+
+class DetectionResult(Base):
+    __tablename__ = "detection_results"
+
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
+    event_id: Mapped[str] = mapped_column(
+        ForeignKey("scenario_events.id"), nullable=False
+    )
+
+    sensor_id: Mapped[str] = mapped_column(
+        ForeignKey("sensors.id"), nullable=False
+    )
+
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False
+    )
+
+    baseline_value: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    observed_value: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    deviation_pct: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    threshold_pct: Mapped[float] = mapped_column(
+        Float, nullable=False
+    )
+
+    result: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    explanation: Mapped[str] = mapped_column(
+        String, nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "event_id",
+            "sensor_id",
+            "timestamp",
+            name="uq_detection_event_sensor_timestamp",
+        ),
+    )

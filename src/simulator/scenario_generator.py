@@ -5,17 +5,13 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.models import Equipment, Facility, ScenarioEvent
-
-
-SCENARIO_TYPES = [
-    "leak",
-    "blockage",
-    "pump_degradation",
-    "sensor_fault",
-]
-
-SEVERITIES = ["low", "medium", "high"]
+from src.models import (
+    Equipment,
+    Facility,
+    Pipe,
+    ScenarioEvent,
+    Sensor,
+)
 
 
 def generate_scenarios(
@@ -23,8 +19,6 @@ def generate_scenarios(
     number_of_scenarios: int = 12,
     seed: int = 20261022,
 ):
-    """Create reproducible fault-event records."""
-
     rng = random.Random(seed)
 
     facilities = session.scalars(
@@ -32,79 +26,94 @@ def generate_scenarios(
     ).all()
 
     if not facilities:
-        raise ValueError("No facilities found. Generate master data first.")
+        raise ValueError("No facilities found.")
 
-    equipment = session.scalars(
-        select(Equipment).order_by(Equipment.id)
+    pumps = session.scalars(
+        select(Equipment)
+        .where(Equipment.equipment_type == "pump")
+        .order_by(Equipment.id)
     ).all()
 
-    if not equipment:
-        raise ValueError("No equipment found.")
+    pipes = session.scalars(
+        select(Pipe).order_by(Pipe.id)
+    ).all()
+
+    sensors = session.scalars(
+        select(Sensor).order_by(Sensor.id)
+    ).all()
+
+    if not pumps or not pipes or not sensors:
+        raise ValueError(
+            "Missing pumps, pipes, or sensors. "
+            "Generate master data first."
+        )
 
     existing_ids = set(
         session.scalars(select(ScenarioEvent.id)).all()
     )
 
+    scenario_types = [
+        "leak",
+        "blockage",
+        "pump_degradation",
+        "sensor_fault",
+    ]
+
+    severities = ["low", "medium", "high"]
+    start_time = datetime(2026, 1, 1)
+
     created = 0
-    start_time = datetime(2026, 1, 1, 0, 0, 0)
 
     for i in range(1, number_of_scenarios + 1):
-        event_id = f"EVT-{i:06d}"
+        event_id = f"EVT-2026-{i:06d}"
 
-        # Do not duplicate an event if this function is run again.
         if event_id in existing_ids:
             continue
 
-        scenario_type = SCENARIO_TYPES[(i - 1) % len(SCENARIO_TYPES)]
+        scenario_type = scenario_types[(i - 1) % 4]
 
-        if scenario_type == "pump_degradation":
-            candidates = [
-                item for item in equipment
-                if item.equipment_type == "pump"
-            ]
-        elif scenario_type == "blockage":
-            candidates = [
-                item for item in equipment
-                if item.equipment_type in ("valve", "pipe")
-            ]
-        elif scenario_type == "sensor_fault":
-            candidates = [
-                item for item in equipment
-                if item.equipment_type in ("pump", "tank", "valve")
-            ]
+        equipment_id = None
+        pipe_id = None
+        sensor_id = None
+
+        if scenario_type in ("leak", "blockage"):
+            candidates = pipes
+            asset = rng.choice(candidates)
+            pipe_id = asset.id
+            facility_id = asset.facility_id
+
+        elif scenario_type == "pump_degradation":
+            asset = rng.choice(pumps)
+            equipment_id = asset.id
+            facility_id = asset.facility_id
+
         else:
-            candidates = [
-                item for item in equipment
-                if item.equipment_type in ("pipe", "tank")
-            ]
-
-        # Pipe is a separate entity, not an Equipment subtype.
-        # For now, select equipment for all events.
-        if not candidates:
-            candidates = equipment
-
-        affected = rng.choice(candidates)
-        facility_id = affected.facility_id
+            asset = rng.choice(sensors)
+            sensor_id = asset.id
+            equipment_id = asset.equipment_id
+            facility_id = asset.facility_id
 
         event_start = start_time + timedelta(
             minutes=rng.randint(0, 500)
         )
-        duration_minutes = rng.randint(15, 120)
+
+        event_end = event_start + timedelta(
+            minutes=rng.randint(15, 120)
+        )
 
         session.add(
             ScenarioEvent(
                 id=event_id,
                 facility_id=facility_id,
-                equipment_id=affected.id,
+                equipment_id=equipment_id,
+                pipe_id=pipe_id,
+                sensor_id=sensor_id,
                 scenario_type=scenario_type,
                 start_time=event_start,
-                end_time=event_start + timedelta(
-                    minutes=duration_minutes
-                ),
-                severity=rng.choice(SEVERITIES),
+                end_time=event_end,
+                severity=rng.choice(severities),
                 description=(
-                    f"Simulated {scenario_type.replace('_', ' ')} "
-                    f"affecting {affected.id}"
+                    f"Simulated {scenario_type.replace('_', ' ')}"
                 ),
                 status="planned",
             )
@@ -113,4 +122,4 @@ def generate_scenarios(
         created += 1
 
     session.flush()
-    print(f"Scenario events created: {created}")
+    print(f"New scenario events created: {created}")
