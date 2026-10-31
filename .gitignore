@@ -1,0 +1,51 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local databases and database backups
+# data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/*_backup*
+
+# Generated reports and evaluation outputs
+# reports/*.csv
+# reports/*.json
+
+# Generated logs
+*.log
+
+# Database backups
+*_backup*
+*.bak
+*.backup
