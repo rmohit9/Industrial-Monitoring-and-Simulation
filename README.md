@@ -122,6 +122,24 @@ python -m pytest tests -v
 
 **Important:** The data-generation and simulation commands may behave differently when records already exist. Back up the database before regenerating data or rerunning scripts that modify stored records.
 
+### Launch the Dashboard
+
+The project includes a Streamlit dashboard for viewing equipment metrics, exploring recent sensor telemetry, and reviewing the latest alarms.
+
+Start the dashboard from the project root:
+
+```cmd
+python -m streamlit run dashboard\app.py
+```
+
+Streamlit will display a local URL in the terminal, usually:
+
+```text
+http://localhost:8501
+```
+
+**Note:** Ensure the virtual environment is activated, the required dependencies are installed, and the existing database file `data/industrial_monitoring.db` is available before launching the dashboard. The dashboard reads the existing database and does not generate or modify the database tables.
+
 ## Current Synthetic Dataset
 
 The validated database currently contains:
