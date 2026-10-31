@@ -96,6 +96,32 @@ def evaluate_detection():
         (tp + tn) / (tp + tn + fp + fn)
         if tp + tn + fp + fn else 0.0
     )
+    
+    print("\nRESULTS BY SCENARIO")
+    print("-------------------")
+
+    for scenario, values in sorted(by_scenario.items()):
+        tp_s = values["TP"]
+        fn_s = values["FN"]
+        fp_s = values["FP"]
+        tn_s = values["TN"]
+
+        total_faults = tp_s + fn_s
+        scenario_recall = (
+            tp_s / total_faults if total_faults else None
+        )
+
+        print(
+            f"{scenario}: "
+            f"TP={tp_s}, FN={fn_s}, "
+            f"FP={fp_s}, TN={tn_s}, "
+            f"Recall={scenario_recall:.2%}"
+            if scenario_recall is not None
+            else (
+                f"{scenario}: TP={tp_s}, FN={fn_s}, "
+                f"FP={fp_s}, TN={tn_s}, Recall=N/A"
+            )
+        )
 
     summary = {
         "evaluation_type": "faults_and_normal_controls",

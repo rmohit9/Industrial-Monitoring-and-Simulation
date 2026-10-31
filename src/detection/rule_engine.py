@@ -12,9 +12,9 @@ from src.models import (
 )
 
 THRESHOLDS = {
-    "flow": 15.0,
-    "pressure": 15.0,
-    "level": 0.5,
+    "flow": 8.0,
+    "pressure": 8.0,
+    "level": 8.0,
 }
 
 
@@ -62,37 +62,22 @@ def detect_anomalies(session: Session):
             continue
 
         # Use a consistent nominal reference for every sample.
-        if sensor.sensor_type == "flow":
-            pump = pumps.get(sensor.equipment_id)
-            if pump is None:
-                continue
-            reference = pump.rated_flow
-
-        elif sensor.sensor_type == "pressure":
-            pump = pumps.get(sensor.equipment_id)
-            reference = (
-                pump.shutoff_head * 9.81
-                if pump is not None
-                else 300.0
-            )
-
-        elif sensor.sensor_type == "level":
-            tank = tanks.get(sensor.equipment_id)
-            if tank is None:
-                continue
-            reference = tank.initial_level
-
-        else:
-            continue
-
-
-        # Compare each reading against its recorded baseline.
+        # Use the baseline recorded for this specific reading.
         if sensor.sensor_type not in THRESHOLDS:
             continue
 
         reference = reading.baseline_value
         observed = reading.simulated_value
         threshold = THRESHOLDS[sensor.sensor_type]
+
+
+        # Compare each reading against its recorded baseline.
+        # if sensor.sensor_type not in THRESHOLDS:
+        #     continue
+
+        # reference = reading.baseline_value
+        # observed = reading.simulated_value
+        # threshold = THRESHOLDS[sensor.sensor_type]
 
 
         if reference == 0:
@@ -107,7 +92,7 @@ def detect_anomalies(session: Session):
             anomalies += 1
 
         explanation = (
-            f"Observed value differs from nominal reference by "
+            f"Observed value differs from recorded baseline by "
             f"{deviation:.2f}%; threshold is {threshold:.2f}%."
         )
 

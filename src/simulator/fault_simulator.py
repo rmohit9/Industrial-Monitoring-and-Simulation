@@ -121,7 +121,7 @@ def simulate_faults(session: Session):
                     if sensor.sensor_type == "flow":
                         simulated = baseline * 0.65
                     elif sensor.sensor_type == "level":
-                        simulated = max(0.0, baseline - 5.0)
+                        simulated = max(0.0, baseline * 0.65)
 
                 elif event.scenario_type == "blockage":
                     if sensor.sensor_type == "flow":
