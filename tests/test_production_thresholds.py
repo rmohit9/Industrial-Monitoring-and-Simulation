@@ -17,18 +17,11 @@ def detect_anomaly(baseline, observed, threshold):
     return deviation >= threshold
 
 
-def main():
+def test_production_thresholds():
     rng = np.random.default_rng(SEED)
 
-    print("\nPRODUCTION THRESHOLD TEST")
-    print("-------------------------")
-
-    for sensor_type, original_threshold in THRESHOLDS.items():
-        threshold = 8.0
-        # Simulate normal sensor noise with a standard deviation of 3%.
+    for sensor_type, threshold in THRESHOLDS.items():
         normal = BASELINE + rng.normal(0, 3, NORMAL_READINGS)
-
-        # Simulate faults with 10% and 30% increases.
         subtle_faults = BASELINE * 1.10 + rng.normal(0, 1, 100)
         severe_faults = BASELINE * 1.30 + rng.normal(0, 2, 100)
 
@@ -47,13 +40,16 @@ def main():
 
         print(f"\nSensor type: {sensor_type}")
         print(f"Threshold: {threshold:.1f}%")
-        print(
-            f"Normal false positives: "
-            f"{false_positives}/{NORMAL_READINGS}"
-        )
+        print(f"Normal false positives: {false_positives}/{NORMAL_READINGS}")
         print(f"Subtle faults detected: {subtle_detected}/100")
         print(f"Severe faults detected: {severe_detected}/100")
 
-
-if __name__ == "__main__":
-    main()
+        assert false_positives <= 20, (
+            f"{sensor_type}: too many normal false positives"
+        )
+        assert subtle_detected >= 90, (
+            f"{sensor_type}: too few subtle faults detected"
+        )
+        assert severe_detected >= 95, (
+            f"{sensor_type}: too few severe faults detected"
+        )
